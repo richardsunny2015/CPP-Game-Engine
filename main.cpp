@@ -1,6 +1,7 @@
 // Local Headers
 #include "glitter.hpp"
 #include "shader.h"
+#include "stb_image.h"
 
 // System Headers
 #include <GLFW/glfw3.h>
