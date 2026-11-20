@@ -109,6 +109,7 @@ int main() {
     float greenValue = sin(timeValue) / 2.0f + 0.5f;
     ourShader.use();
     ourShader.set4f("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+    ourShader.setFloat("offset", 0.4);
 
     glBindVertexArray(
         VAO); // seeing as we only have a single VAO there's no need to bind it
