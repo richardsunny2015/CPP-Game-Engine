@@ -15,6 +15,7 @@
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+void instantiateTexture(GLuint *texture, GLenum texUnit, char *filename, bool isRGBA, bool shouldFlipImage);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -101,36 +102,25 @@ int main() {
   // VBOs) when it's not directly necessary.
   glBindVertexArray(0);
 
+  // TEXTURE0
   // create and bind texture
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  unsigned int texture1;
+  instantiateTexture(&texture1, GL_TEXTURE0, "images/container.jpg", false, false);
 
-  // set wraps and filter
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  // load image
-  int width, height, nrChannels;
-  unsigned char *data = stbi_load("images/container.jpg", &width, &height, &nrChannels, 0);
-
-  if (data)
-  {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
-  else
-  {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data);
+  // TEXTURE1
+  // create and bind texture
+  unsigned int texture2;
+  instantiateTexture(&texture2, GL_TEXTURE1, "images/awesomeface.png", true, true);
 
 
   // uncomment this call to draw in wireframe polygons.
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
+  ourShader.use();
+
+  ourShader.setInt("texture1", 0);
+  ourShader.setInt("texture2", 1);
 
   // render loop
   // -----------
@@ -144,9 +134,11 @@ int main() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    ourShader.use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
 
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
     glBindVertexArray(
         VAO); // seeing as we only have a single VAO there's no need to bind it
               // every time, but we'll do so to keep things a bit more organized
@@ -178,6 +170,43 @@ int main() {
 void processInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
+}
+
+void instantiateTexture(GLuint *texture, GLenum texUnit, char *filename, bool isRGBA, bool shouldFlipImage) {
+  glGenTextures(1, texture);
+  glActiveTexture(texUnit);
+  glBindTexture(GL_TEXTURE_2D, *texture);
+
+  // set wraps and filter
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // load image
+  int width, height, nrChannels;
+  if (shouldFlipImage)
+  {
+    stbi_set_flip_vertically_on_load(true);
+  }
+  unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, 0);
+
+  if (data)
+  {
+    if (isRGBA)
+    {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    }
+    else
+    {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    }
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  else
+  {
+    std::cout << "Failed to load texture" << std::endl;
+  }
+  stbi_image_free(data);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback
