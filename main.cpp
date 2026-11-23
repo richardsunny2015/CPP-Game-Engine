@@ -20,6 +20,7 @@ void instantiateTexture(GLuint *texture, GLenum texUnit, char *filename, bool is
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+float ourAlpha = 0.2;
 
 int main() {
   // glfw: initialize and configure
@@ -55,10 +56,10 @@ int main() {
   // ------------------------------------------------------------------
   float vertices[] = {
     // positions          // colors           // texture coords
-     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.75f, 0.75f,   // top right
-     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.75f, 0.25f,   // bottom right
-    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.25f, 0.25f,   // bottom left
-    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.25f, 0.75f    // top left
+     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
   };
   unsigned int indices[] = {
     0, 1, 3,
@@ -128,6 +129,7 @@ int main() {
     // input
     // -----
     processInput(window);
+    ourShader.setFloat("ourAlpha", ourAlpha);
 
     // render
     // ------
@@ -170,6 +172,21 @@ int main() {
 void processInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+  {
+    ourAlpha += 0.01;
+    if (ourAlpha >= 1.0)
+      ourAlpha = 1.0;
+
+    std::cout << ourAlpha << std::endl;
+  }
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+  {
+    ourAlpha -= 0.01;
+    if (ourAlpha <= 0.0)
+      ourAlpha = 0.0;
+    std::cout << ourAlpha << std::endl;
+  }
 }
 
 void instantiateTexture(GLuint *texture, GLenum texUnit, char *filename, bool isRGBA, bool shouldFlipImage) {
